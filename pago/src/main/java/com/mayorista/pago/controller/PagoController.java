@@ -7,29 +7,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/api/pagos")
+@RequestMapping("/api/v1/pagos")
 public class PagoController {
 
     @Autowired
-    private PagoService service;
-
-    @GetMapping
-    public List<Pago> obtenerTodos() {
-        return service.listarTodos();
-    }
-// profe la quiero
-    @PostMapping
-    public ResponseEntity<?> crear(@RequestBody Pago pago) {
-        try {
-            Pago nuevoPago = service.registrarPago(pago);
-            return new ResponseEntity<>(nuevoPago, HttpStatus.CREATED);
-        } catch (Exception e) {
-
-            return new ResponseEntity<>("Error al procesar el pago: " + e.getMessage(),
-                    HttpStatus.BAD_REQUEST);
-        }
+    private PagoService pagoService;
+//profe la quiero
+    @PostMapping("/procesar")
+    public ResponseEntity<Pago> registrarPago(@RequestBody Pago pago) {
+        Pago nuevoPago = pagoService.procesarPago(pago);
+        return new ResponseEntity<>(nuevoPago, HttpStatus.CREATED);
     }
 }

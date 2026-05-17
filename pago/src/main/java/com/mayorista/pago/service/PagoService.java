@@ -2,47 +2,34 @@ package com.mayorista.pago.service;
 
 import com.mayorista.pago.model.Pago;
 import com.mayorista.pago.repository.PagoRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class PagoService {
 
-    private static final Logger logger = LoggerFactory.getLogger(PagoService.class);
-
     @Autowired
-    private PagoRepository repository;
+    private PagoRepository pagoRepository;
 
-    @Autowired
-    private RestTemplate restTemplate;
-
-    public Pago registrarPago(Pago pago) {
-        logger.info("Registrando un nuevo pago para la factura: {}", pago.getId_factura());
-        pago.setFecha_pago(LocalDateTime.now());
-
-        Pago pagoGuardado = repository.save(pago);
-
+    public Pago procesarPago(Pago pago) {
+        pago.setFechaPago(LocalDateTime.now());
+        Pago pagoGuardado = pagoRepository.save(pago);
 
         try {
-            String urlFactura = "http://localhost:8080/api/facturas/" + pagoGuardado.getId_factura() + "/pagar";
-            logger.info("Enviando aviso de pago al microservicio de Factura en la URL: {}", urlFactura);
-            restTemplate.postForObject(urlFactura, null, String.class);
-            logger.info("¡Estado de factura actualizado exitosamente en el microservicio destino!");
-        } catch (Exception e) {
-            logger.error("No se pudo conectar con el microservicio de Factura: {}", e.getMessage());
+            WebClient.create("http://localhost:8083")
+                    .post()
+                    .uri("/api/v1/facturas/" + pagoGuardado.getIdFactura() + "/pagar")
+                    .retrieve()
+                    .bodyToMono(Void.class)
+                    .block();
+            System.out.println("Factura actualizada a pagada de forma remota.");
+        } catch (Exception ex) {
+            System.out.println("Pago registrado localmente pero fallo la conexión con Facturas: " + ex.getMessage());
         }
 
         return pagoGuardado;
-    }
-
-    public List<Pago> listarTodos() {
-        logger.info("Obteniendo lista de todos los pagos");
-        return repository.findAll();
     }
 }

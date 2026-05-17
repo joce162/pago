@@ -5,16 +5,24 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "pagoss")
+@Table(name = "pagos")
 @Data
 public class Pago {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_pago;
+    @Column(name = "id_pago")
+    private Long idPago;
 
-    private Long id_factura;
-    private Double montoo_pagado;
-    private String metodo_pago;
-    private LocalDateTime fecha_pago;
+    @Column(name = "id_factura")
+    private Long idFactura;
+
+    @Column(name = "monto_pagado")
+    private Double montoPagado;
+
+    @Column(name = "metodo_pago")
+    private String metodoPago;
+
+    @Column(name = "fecha_pago")
+    private LocalDateTime fechaPago;
 }
